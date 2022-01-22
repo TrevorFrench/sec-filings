@@ -12,6 +12,7 @@ const path = require('path');                                       // works wit
 var bodyParser = require("body-parser");                            // middleware
 const app = express();                                              // instantiate the module into a variable
 const fs = require('fs');
+const axios = require('axios')
 
 //-----------------------------------------------------------------
 //------------------------ENVIRONMENT SETUP------------------------
@@ -30,9 +31,70 @@ app.listen(app.get("port"), function () {                           // listens o
 	console.log("Now listening on port: " + app.get("port"));
 });
 
-app.get('/', 														// when the root directory loads, send the main.html file to the client
+/*app.get('/', 														// when the root directory loads, send the main.html file to the client
 	(req, res) =>
 		res.sendFile(
 			path.join(__dirname, 'index.html')
 		)
+	);*/
+
+    app.get('/', 														// when the root directory loads, send the main.html file to the client
+    (req, res) => {
+        axios
+          .post('https://efts.sec.gov/LATEST/search-index/', {
+        
+                "q": "Crypto",
+                "type": "",
+                "reverse_order": "FALSE",
+                "count": 100,
+                "page": 1,
+                "stemming": "TRUE",
+                "name": "",
+                "cik": "",
+                "sic": "",
+                "from": 1,
+                "to": 100,
+                "location": "",
+                "incorporated_location": "FALSE"}
+          )
+          .then((response) => {
+            console.log(`statusCode: ${res.status}`)
+            console.log(response.data.hits.hits[0])
+            res.render("dashboard.ejs", {statusMessage: response.data.hits.hits[0]._source.display_names[0]})
+          })
+          .catch(error => {
+            console.error(error)
+          })
+        }
 	);
+
+app.post('/full_text',
+(req, res) => {
+axios
+  .post('https://efts.sec.gov/LATEST/search-index/', {
+
+        "q": "Crypto",
+        "type": "",
+        "reverse_order": "FALSE",
+        "count": 100,
+        "page": 1,
+        "stemming": "TRUE",
+        "name": "",
+        "cik": "",
+        "sic": "",
+        "from": 1,
+        "to": 100,
+        "location": "",
+        "incorporated_location": "FALSE"}
+  )
+  .then((response) => {
+    console.log(`statusCode: ${res.status}`)
+    console.log(response.data.hits.hits[0])
+    res.render("dashboard.ejs", {statusMessage: response.data.hits.hits[0]._source.display_names[0]})
+  })
+  .catch(error => {
+    console.error(error)
+  })
+}
+)
+
